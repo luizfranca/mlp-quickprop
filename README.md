@@ -1,1 +1,1 @@
-# mlp-quickpropagation
+# MLP-Quickprop
