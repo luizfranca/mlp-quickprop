@@ -11,18 +11,18 @@ class MLP:
 		self.w1 = np.random.random((num_Hidden + 1, num_Output))
 
 	def forward(self, input_Vector):
-		input_Vector = np.insert(input_Vector, 0, -1)
+		input_Vector = np.hstack(([[-1]], input_Vector))
+
 		i1 = np.dot(input_Vector, self.w0)
 		y1 = sigmoid(i1)
+		y1 = np.hstack(([[-1]], y1))
+		
 
-		y1 = np.transpose(y1)
-		y1 = np.insert(y1, 0, -1)
-
-		i2 = np.dot(input_Vector, self.w1)
+		i2 = np.dot(y1, self.w1)
 		y2 = sigmoid(i2)
 		print y2
 		
 
 mlp = MLP(2, 2, 1)
 
-mlp.forward(np.random.random((1, 2)))
+mlp.forward([[0.3, 0.3]])
