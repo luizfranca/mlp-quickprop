@@ -82,6 +82,7 @@ class MLP:
 
 				# feedforward
 				input_Vector = np.hstack(([[-1]], [train_Set[i]]))
+				
 				i1 = np.dot(input_Vector, self.w0)
 				y1 = sigmoid(i1)
 				y1 = np.hstack(([[-1]], y1))
@@ -136,8 +137,8 @@ class MLP:
 				self.boolean1 = new_W1 > self.w1 * self.max_Growth_Factor
 				new_W1[self.boolean1] = self.w1[self.boolean1] * self.max_Growth_Factor
 
-				self.boolean1 = new_W1 < self.w1 * -self.max_Growth_Factor
-				new_W1[self.boolean1] = self.w1[self.boolean1] * -self.max_Growth_Factor
+				# self.boolean1 = new_W1 < self.w1 * -self.max_Growth_Factor
+				# new_W1[self.boolean1] = self.w1[self.boolean1] * -self.max_Growth_Factor
 
 				# print "new_W1"
 				# print new_W1
@@ -163,9 +164,9 @@ class MLP:
 				
 				new_W0[self.boolean0] = self.w0[self.boolean0] * self.max_Growth_Factor
 
-				self.boolean0 = new_W0 < self.w0 * -self.max_Growth_Factor
+				# self.boolean0 = new_W0 < self.w0 * -self.max_Growth_Factor
 				
-				new_W0[self.boolean0] = self.w0[self.boolean0] * -self.max_Growth_Factor
+				# new_W0[self.boolean0] = self.w0[self.boolean0] * -self.max_Growth_Factor
 
 				self.w0 = new_W0
 
@@ -190,7 +191,7 @@ class MLP:
 			prev_Grad1 = curr_Grad1
 			prev_Delta1 = curr_Delta1
 
-mlp = MLP(2, 2, 1, 0.7, 1000)
+mlp = MLP(2, 2, 2, 0.7, 1000)
 
 train_Set = [[0, 0],
 			 [0, 1],
@@ -199,6 +200,8 @@ train_Set = [[0, 0],
 
 label = [0, 1, 1, 0]
 
+print mlp.feedforward(train_Set[0])
+
 # print "Before\n"
 # for i in range(len(train_Set)):
 # 	print (mlp.feedforward(train_Set[i])[0][0], label[i])
@@ -206,14 +209,26 @@ label = [0, 1, 1, 0]
 # print mlp.w0
 # print mlp.w1
 
+mlp.backpropagation(train_Set, label)
+print mlp.feedforward(train_Set[0])
+# # mlp.quickprop(train_Set, label)
+
+# print "After\n"
+# for i in range(len(train_Set)):
+# 	print (mlp.feedforward(train_Set[i])[0][0], label[i])
+
+# print "W0: \n"
+# print mlp.w0
+# print "\nW1 \n"
+# print mlp.w1
+
+# train = open("data/training.txt")
+# data = train.readlines()
+# train_Set = [map(lambda x : int(x), line.split(",")[1:]) for line in data]
+# label = [int(line.split(",")[0]) for line in data]
+
+# mlp = MLP(len(train_Set[0]), 10, 26, 0.7, 1000)
+
+# print mlp.feedforward(train_Set[0])
+
 # mlp.backpropagation(train_Set, label)
-mlp.quickprop(train_Set, label)
-
-print "After\n"
-for i in range(len(train_Set)):
-	print (mlp.feedforward(train_Set[i])[0][0], label[i])
-
-print "W0: \n"
-print mlp.w0
-print "\nW1 \n"
-print mlp.w1
