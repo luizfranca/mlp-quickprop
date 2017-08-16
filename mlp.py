@@ -12,8 +12,6 @@ class MLP:
 		self.learn_Rate = learn_Rate
 		self.max_Growth_Factor = max_Growth_Factor
 		self.num_Epoch = num_Epoch
-		self.boolean1 = 0
-		self.boolean0 = 0
 
 	def feedforward(self, input_Vector):
 		input_Vector = [input_Vector]
@@ -26,7 +24,7 @@ class MLP:
 
 		i2 = np.dot(y1, self.w1)
 		y2 = sigmoid(i2)
-		# print y2
+		
 		return y2
 
 	def backpropagation(self, train_Set, label):
@@ -67,7 +65,8 @@ class MLP:
 		prev_Delta2 = 0
 		prev_Delta1 = 0
 
-
+		prev_Step2 = 0
+		prev_Step1 = 0
 
 		for j in xrange(self.num_Epoch):
 			err = 0
@@ -82,7 +81,7 @@ class MLP:
 
 				# feedforward
 				input_Vector = np.hstack(([[-1]], [train_Set[i]]))
-				
+
 				i1 = np.dot(input_Vector, self.w0)
 				y1 = sigmoid(i1)
 				y1 = np.hstack(([[-1]], y1))
@@ -93,96 +92,85 @@ class MLP:
 
 				# quickprop
 
-				# delta2 = (label[i] - y2) * (y2 * (1 - y2))
-				# deltaW1 = delta2 * self.learn_Rate * np.transpose(y1)
-
-				# self.w1 = self.w1 + deltaW1
-			
-				# delta1 = (delta2 * self.w1[1:]) * (np.transpose(y1)[1:] * (1 - np.transpose(y1)[1:]))
-				# dw1 = delta1 * self.learn_Rate * input_Vector
-
-				# self.w0 = self.w0 + np.transpose(dw1)
-
-
-
-				# new_Delta2 = (label[i] - y2) * (y2 * (1 - y2))
-				# new_Grad2 = new_Delta2 * np.transpose(y1)
 				delta2 = (label[i] - y2) * (y2 * (1 - y2))
-				curr_Delta2 += delta2
-				curr_Grad2 += delta2 * self.learn_Rate * np.transpose(y1)
+				curr_Delta2 += delta2 
+				curr_Grad2 += delta2 * np.transpose(y1)
 
-				# new_Delta1 = (new_Delta2 * self.w1[1:]) * (np.transpose(y1)[1:] * (1 - np.transpose(y1)[1:]))
-				# new_Grad1 = new_Delta1 * input_Vector
 
-			
-				delta1 = (delta2 * self.w1[1:]) * (np.transpose(y1)[1:] * (1 - np.transpose(y1)[1:]))
-				curr_Delta1 += delta1
-				curr_Grad1 += delta1 * self.learn_Rate * input_Vector
+				delta1 = (delta2 * self.w1[1:]) * (np.transpose(y1)[1:] * (1 - np.transpose(y1)[1:])) 
+				
+				curr_Delta1 += delta1 
+				curr_Grad1 += delta1 * input_Vector
 
-			# if (delta2 )
-			## d
 			if (type(prev_Grad2) == int):
+
+				prev_Step2 = curr_Grad2 * self.learn_Rate
+				prev_Step1 = np.transpose(curr_Grad1) * self.learn_Rate
 
 				self.w1 = self.w1 + curr_Grad2
 				self.w0 = self.w0 + np.transpose(curr_Grad1)
-				# print "="*30 + " self.w0 first"
-				# print self.w0
-				# print "="*30 + " w1 thingy"
 			else:
-				new_W1 = (curr_Delta2 / (prev_Delta2 - curr_Delta2)) * prev_Grad2
+				#  for (i=0; i<length; i++) {
+				#   momentum[i] = gradient[i]/(lastGradient[i] - gradient[i]);
+				#   if (momentum[i] > defaultMomentum)
+				#    momentum[i] = defaultMomentum;
+				#   if (momentum[i] < -defaultMomentum)
+				#    momentum[i] = -defaultMomentum;
+				#   delta[i] = momentum[i]*delta[i] + lastGradient[i]*(gradient[i]<0?0:step[individual?i:0]*gradient[i]);
+				#   weights[i] += delta[i];
+				#   lastGradient[i] = gradient[i];
+				#  }
+				# }
+				# print "curgrad2"
+				# print curr_Grad2
+				# print "curdelta2"
 				# print curr_Delta2
-				# print prev_Delta2
+				# print 
+				# http://venturas.org/sites/venturas.org/files/mydmbp.pdf
+				shrink = self.max_Growth_Factor / (1 + self.max_Growth_Factor)
+				new_W1 = np.zeros((len(curr_Grad2), len(curr_Grad2[0])))
+				for i in range(len(curr_Grad2)):
+					for j in range(len(curr_Grad2[0])):
+						if curr_Grad2[i][j] > 0:
+							if curr_Delta2[i][j] > shrink * prev_Delta2[i][j]:
+								new_W1[i][j] = self.max_Growth_Factor * curr_Grad2[i][j]
 
-				# print (curr_Delta2 / (prev_Delta2 - curr_Delta2))
-				self.boolean1 = new_W1 > self.w1 * self.max_Growth_Factor
-				new_W1[self.boolean1] = self.w1[self.boolean1] * self.max_Growth_Factor
+							elif curr_Delta2[i][j] < shrink * prev_Delta2[i][j]:
+								new_W1 = (curr_Delta2[i][j] / 
+									(prev_Delta2[i][j] - curr_Delta2[i][j])) * curr_Grad2[i][j]
 
-				# self.boolean1 = new_W1 < self.w1 * -self.max_Growth_Factor
-				# new_W1[self.boolean1] = self.w1[self.boolean1] * -self.max_Growth_Factor
+							# elif 
 
-				# print "new_W1"
-				# print new_W1
-				self.w1 = new_W1
-				# print "="*30 + " transpose first part"
-				# print np.transpose(curr_Delta1 / (prev_Delta1 - curr_Delta1))
-				# print "="*30  + " prev_Grad1"
 
-				# print prev_Grad1
-				# print "="*30  + " self.w0 second"
-				# print self.w0
-				# print "="*30
-				new_W0 = np.transpose(curr_Delta1 / (prev_Delta1 - curr_Delta1)) * np.transpose(prev_Grad1)
-				# print "before"
-				# print new_W0
-				# print ""
-				# print new_W0
-				# print "\n\n"
+				new_W1 = curr_Grad2 + (curr_Grad2 / (prev_Grad2 - curr_Grad2)) * prev_Step2
+				
+				# smaller_Same_Sign2 = 
+
+
+				boolean1 = new_W1 > prev_Step2 * self.max_Growth_Factor
+				new_W1[boolean1] = self.w1[boolean1] * self.max_Growth_Factor
+
+				boolean1 = new_W1 < prev_Step2 * -self.max_Growth_Factor
+				new_W1[boolean1] = self.w1[boolean1] * -self.max_Growth_Factor
+
+				prev_Step2 = new_W1
+				self.w1 += new_W1
+				
+
+
+
+				new_W0 = np.transpose(curr_Grad1) + np.transpose(curr_Grad1 / (prev_Grad1 - curr_Grad1)) * prev_Step1
 				
 				
-				
-				self.boolean0 = new_W0 > self.w0 * self.max_Growth_Factor
-				
-				new_W0[self.boolean0] = self.w0[self.boolean0] * self.max_Growth_Factor
+				boolean0 = new_W0 > prev_Step1 * self.max_Growth_Factor
+				new_W0[boolean0] = self.w0[boolean0] * self.max_Growth_Factor
 
-				# self.boolean0 = new_W0 < self.w0 * -self.max_Growth_Factor
-				
-				# new_W0[self.boolean0] = self.w0[self.boolean0] * -self.max_Growth_Factor
+				boolean0 = new_W0 < prev_Step1 * -self.max_Growth_Factor
+				new_W0[boolean0] = self.w0[boolean0] * -self.max_Growth_Factor
 
-				self.w0 = new_W0
 
-				# print "\n\n"
-				# print "boolean0"
-				# print self.boolean0
-				# print "boolean1"
-				# print self.boolean1
-				# print "new_W0"
-				# print new_W0
-				# print "new_W1"
-				# print new_W1
-				# print "self.w0"
-				# print self.w0
-				# print "self.w1"
-				# print self.w1
+				prev_Step1 = new_W0
+				self.w0 += new_W0
 
 
 			prev_Delta2 = curr_Delta2
@@ -191,16 +179,16 @@ class MLP:
 			prev_Grad1 = curr_Grad1
 			prev_Delta1 = curr_Delta1
 
-mlp = MLP(2, 2, 2, 0.7, 1000)
+mlp = MLP(2, 2, 1, 0.7, 1000)
 
-train_Set = [[0, 0],
+train_Set = [[1, 1],
 			 [0, 1],
 			 [1, 0],
 			 [1, 1]]
 
 label = [0, 1, 1, 0]
 
-print mlp.feedforward(train_Set[0])
+# print mlp.feedforward(train_Set[0])
 
 # print "Before\n"
 # for i in range(len(train_Set)):
@@ -209,13 +197,12 @@ print mlp.feedforward(train_Set[0])
 # print mlp.w0
 # print mlp.w1
 
-mlp.backpropagation(train_Set, label)
-print mlp.feedforward(train_Set[0])
-# # mlp.quickprop(train_Set, label)
+# mlp.backpropagation(train_Set, label)
+mlp.quickprop(train_Set, label)
 
-# print "After\n"
-# for i in range(len(train_Set)):
-# 	print (mlp.feedforward(train_Set[i])[0][0], label[i])
+print "After\n"
+for i in range(len(train_Set)):
+	print (mlp.feedforward(train_Set[i])[0][0], label[i])
 
 # print "W0: \n"
 # print mlp.w0
